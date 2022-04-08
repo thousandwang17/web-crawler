@@ -75,8 +75,5 @@ func pin(client *mongo.Client) bool {
 	defer cancel()
 	err := client.Ping(ctx, readpref.Primary())
 
-	if err == nil {
-		return true
-	}
-	return false
+	return err == nil
 }
