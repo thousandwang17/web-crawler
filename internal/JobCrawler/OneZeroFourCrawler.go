@@ -76,11 +76,15 @@ func Crawler() {
 
 	for page := 1; page <= 1; page++ {
 		time.Sleep(2 * time.Second)
-		c.Visit(
+		err := c.Visit(
 			fmt.Sprintf("%s%v%s",
 				"https://www.104.com.tw/jobs/search/?ro=0&kwop=7&keyword=golang&expansionType=area%2Cspec%2Ccom%2Cjob%2Cwf%2Cwktm&order=12&asc=0&page=",
 				page,
 				"&mode=s&jobsource=2018indexpoc&langFlag=0"))
+
+		if err != nil {
+			fmt.Printf("err %v", err)
+		}
 
 	}
 
