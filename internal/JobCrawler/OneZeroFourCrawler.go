@@ -7,6 +7,7 @@ import (
 	"github.com/gocolly/colly/v2"
 )
 
+// 廢棄
 type data struct {
 	Day        string
 	Bus        string

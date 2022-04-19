@@ -3,11 +3,13 @@
 package Chromedp
 
 import (
-	"Web-Crawler/init/Connect"
+	"Web-Crawler/internal/init/Connect"
+	"Web-Crawler/internal/init/osenv"
 	"context"
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"strings"
 	"time"
 
@@ -44,17 +46,34 @@ const (
 // chromedp 上下文
 var oz4ctx context.Context
 
+func checkChromePort() bool {
+	addr := net.JoinHostPort("", "9222")
+	conn, err := net.DialTimeout("tcp", addr, 1*time.Second)
+	if err != nil {
+		return false
+	}
+	defer conn.Close()
+	return true
+}
+
 // 初始化
 func Search() {
-	ctx, cancel := chromedp.NewExecAllocator(context.Background(), append(chromedp.DefaultExecAllocatorOptions[:], chromedp.Flag("headless", false))...)
-	defer cancel()
-	ctx, cancel = chromedp.NewContext(ctx)
-	// chromedp ctx 初始化
-	// ctx, cancel := chromedp.NewContext(
-	// 	context.Background(),
-	// )
-	defer cancel()
 
+	var ctx context.Context
+	var cancel context.CancelFunc
+
+	if osenv.TEST_MODE {
+		ctx, cancel = chromedp.NewContext(
+			context.Background(),
+		)
+		ctx, cancel = chromedp.NewContext(ctx)
+	} else {
+		url := fmt.Sprintf("ws://%v:%v", osenv.CHORME_HANDLESS_ADDRESS, osenv.CHORME_HANDLESS_PORT)
+		ctx, _ = chromedp.NewRemoteAllocator(context.Background(), url)
+		ctx, cancel = chromedp.NewContext(ctx)
+	}
+
+	defer cancel()
 	// 設定同樣的上下文
 	oz4ctx = ctx
 
@@ -63,7 +82,6 @@ func Search() {
 
 // 搜尋工作清單
 func getList() {
-
 	for page := 1; page <= 3; page++ {
 		var listHtml string
 
@@ -78,11 +96,12 @@ func getList() {
 		)
 
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf(" err : %v", err)
 		}
 
 		// goquery將獲取到的 html 轉成 dom
 		dom, err := goquery.NewDocumentFromReader(strings.NewReader(listHtml))
+
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -170,12 +189,6 @@ func getJobsData(jobs []string) {
 			bus_data.getJobDegital(jobDegitalLink)
 		}
 
-		// str, _ := json.MarshalIndent(bus_data, "", "\t")
-
-		// opts := options.Update().SetUpsert(true)
-		// filter := bson.D{{"Day", bus_data.Day}, {"Bus", bus_data.Bus}, {"Job", bus_data.JobName}}
-		// update := bson.D{}
-
 		_, MGerr := collection.InsertOne(context.TODO(), bus_data)
 
 		// _, MGerr := collection.UpdateOne(context.TODO(), filter, update, opts)
@@ -183,7 +196,12 @@ func getJobsData(jobs []string) {
 		if MGerr != nil {
 			fmt.Println(MGerr)
 		}
-		// fmt.Printf(`%#v \n`, bus_data)
+
+		empJSON, err := json.MarshalIndent(bus_data, "", "  ")
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+		fmt.Printf(" %s\n", string(empJSON))
 	}
 }
 
@@ -242,12 +260,12 @@ func (jobData *data) getJobDegital(jobDegitalLink string) {
 			}
 		}
 	})
-
 	// 開新分頁 瀏覽 jobDegitalLink
 	err := chromedp.Run(cloneCtx,
 		chromedp.Navigate(`https:`+jobDegitalLink),
 		chromedp.Sleep(3*time.Second),
 	)
+
 	if err != nil {
 		log.Fatal(err)
 	}

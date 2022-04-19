@@ -1,0 +1,15 @@
+version: '3.1'
+
+services:
+  cdp:
+    container_name: web_crawker
+    build: .
+    networks:
+      - mongo_default
+    environment:
+      - MONGO_HOST= 172.17.0.1
+      - MONGO_PORT= 27017
+networks:
+  mongo_default:
+    external: true
+

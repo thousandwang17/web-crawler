@@ -1,6 +1,7 @@
 package Connect
 
 import (
+	"Web-Crawler/internal/init/osenv"
 	"context"
 	"fmt"
 	"sync"
@@ -46,9 +47,9 @@ func connect() bool {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017").SetAuth(credential))
 
-	fmt.Printf(`%v`, err)
+	url := fmt.Sprintf("mongodb://%v:%v", osenv.MONGO_HOST, osenv.MONGO_PORT)
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(url).SetAuth(credential))
 
 	if err == nil && pin(client) {
 		mu.Lock()
@@ -57,9 +58,7 @@ func connect() bool {
 		fmt.Println(` mongo 連接成功!!`)
 		return true
 	}
-
 	return false
-
 }
 
 func GetMongo() *mongo.Client {
