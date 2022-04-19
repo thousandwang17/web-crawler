@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"net"
 	"strings"
 	"time"
 
@@ -46,15 +45,15 @@ const (
 // chromedp 上下文
 var oz4ctx context.Context
 
-func checkChromePort() bool {
-	addr := net.JoinHostPort("", "9222")
-	conn, err := net.DialTimeout("tcp", addr, 1*time.Second)
-	if err != nil {
-		return false
-	}
-	defer conn.Close()
-	return true
-}
+// func checkChromePort() bool {
+// 	addr := net.JoinHostPort("", "9222")
+// 	conn, err := net.DialTimeout("tcp", addr, 1*time.Second)
+// 	if err != nil {
+// 		return false
+// 	}
+// 	defer conn.Close()
+// 	return true
+// }
 
 // 初始化
 func Search() {
@@ -63,7 +62,7 @@ func Search() {
 	var cancel context.CancelFunc
 
 	if osenv.TEST_MODE {
-		ctx, cancel = chromedp.NewContext(
+		ctx, _ = chromedp.NewContext(
 			context.Background(),
 		)
 		ctx, cancel = chromedp.NewContext(ctx)
