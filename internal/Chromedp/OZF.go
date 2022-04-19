@@ -188,7 +188,7 @@ func getJobsData(jobs []string) {
 			bus_data.getJobDegital(jobDegitalLink)
 		}
 
-		_, MGerr := collection.InsertOne(context.TODO(), bus_data)
+		_, MGerr := collection.InsertOne(oz4ctx, bus_data)
 
 		// _, MGerr := collection.UpdateOne(context.TODO(), filter, update, opts)
 
